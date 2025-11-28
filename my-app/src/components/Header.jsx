@@ -1,6 +1,7 @@
 import React from 'react';
-import { DollarSign, Star, Trophy, User } from 'lucide-react';
+import { DollarSign, Star, Trophy, User, Rocket } from 'lucide-react';
 import { moodProfiles } from '../data/financialData';
+import logo from '../assets/logo.png';
 
 const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
   const xpPercentage = (xp / maxXp) * 100;
