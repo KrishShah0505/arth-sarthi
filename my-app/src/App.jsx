@@ -62,9 +62,17 @@ const App = () => {
 
   const chatEndRef = useRef(null);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+ useEffect(() => {
+  if ("scrollRestoration" in window.history) {
+    window.history.scrollRestoration = "manual";
+  }
+
+  // FIX: delay ensures React layout is complete before forcing scroll
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  });
+}, []);
+
 
   useEffect(() => {
     if (token) {
