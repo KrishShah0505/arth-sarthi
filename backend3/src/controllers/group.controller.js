@@ -1,26 +1,43 @@
 import { prisma } from "../../prisma/client.js";
 
 export const createGroup = async (req, res) => {
-  const { name } = req.body;
+  const { name, goalTitle, targetAmount, deadline } = req.body;
   const groupCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
   try {
-    const group = await prisma.group.create({
-      data: {
-        name,
-        groupCode,
-        createdById: req.user.id,
-        members: {
-          create: {
-            userId: req.user.id,
-            role: "ADMIN",
+    // Transaction: Create Group -> Add Admin Member -> Create Group Goal
+    const group = await prisma.$transaction(async (tx) => {
+      const newGroup = await tx.group.create({
+        data: {
+          name,
+          groupCode,
+          createdById: req.user.id,
+          members: {
+            create: {
+              userId: req.user.id,
+              role: "ADMIN",
+            },
           },
         },
-      },
-      include: { members: true },
+      });
+
+      if (goalTitle && targetAmount) {
+        await tx.groupGoal.create({
+          data: {
+            groupId: newGroup.id,
+            title: goalTitle,
+            target: parseFloat(targetAmount),
+            deadline: deadline ? new Date(deadline) : null,
+          },
+        });
+      }
+
+      return newGroup;
     });
+
     res.json(group);
   } catch (error) {
+    console.error("Create Group Error:", error);
     res.status(500).json({ error: "Failed to create group" });
   }
 };
@@ -57,15 +74,32 @@ export const getMyGroups = async (req, res) => {
   try {
     const memberships = await prisma.groupMember.findMany({
       where: { userId: req.user.id },
-      include: { group: true },
+      include: { 
+        group: {
+          include: {
+            goals: {
+              take: 1, // Fetch the main goal
+              orderBy: { createdAt: 'desc' }
+            },
+            members: {
+              include: { user: { select: { name: true, points: true } } }
+            }
+          }
+        } 
+      },
     });
 
     const result = memberships.map((m) => ({
       ...m.group,
+      // Helper fields for the frontend
       myRole: m.role,
+      activeGoal: m.group.goals[0] || null,
+      memberCount: m.group.members.length
     }));
+    
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Failed to fetch groups" });
   }
 };

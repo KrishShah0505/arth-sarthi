@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -73,11 +74,12 @@ model GroupMember {
 }
 
 model GroupGoal {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   groupId   String
   title     String
   target    Float
-  progress  Float    @default(0.0)
-  createdAt DateTime @default(now())
-  group     Group    @relation(fields: [groupId], references: [id])
+  progress  Float     @default(0.0)
+  deadline  DateTime? 
+  createdAt DateTime  @default(now())
+  group     Group     @relation(fields: [groupId], references: [id])
 }
