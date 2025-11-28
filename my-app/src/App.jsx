@@ -219,7 +219,7 @@ const App = () => {
               <div className="md:col-span-3 flex justify-center mt-4">
                 <button
                   onClick={() => setIsExpenseModalOpen(true)}
-                  className="bg-blue-500 text-white px-10 py-5 rounded-2xl shadow-lg w-50 hover:scale-105 transition-transform font-bold"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-5 rounded-2xl shadow-lg w-50 hover:scale-105 transition-transform font-bold"
                 >
                   + Add Expense
                 </button>

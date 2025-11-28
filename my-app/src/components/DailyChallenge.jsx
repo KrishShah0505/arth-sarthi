@@ -6,7 +6,7 @@ const DailyChallenge = ({ challenge, onComplete, completed, mood = 'motivational
   const moodColor = moodProfiles[mood]?.color || 'from-purple-500 to-pink-500';
 
   return (
-    <div className={`bg-gradient-to-r ${moodColor} text-white p-4 rounded-xl shadow-lg mx-2 md:mx-0`}>
+    <div className={`bg-gradient-to-r ${moodColor} text-white p-4 rounded-xl shadow-lg mx-2 md:mx-0 border-1 border-black`}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1">
           <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm shrink-0">
