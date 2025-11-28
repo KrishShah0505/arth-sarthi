@@ -349,7 +349,7 @@ const App = () => {
               <div className="md:col-span-3 flex justify-center mt-2">
                 <button
                   onClick={() => setIsExpenseModalOpen(true)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full shadow-lg hover:scale-105 transition-all font-bold"
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-5 rounded-full shadow-lg hover:scale-105 transition-all font-bold"
                 >
                   <Plus size={20} /> Add Expense
                 </button>
@@ -381,7 +381,7 @@ const App = () => {
               </div>
             )}
 
-            <div className="mt-8 bg-white rounded-2xl shadow-xl p-4 md:p-6 max-w-4xl mx-auto mb-6">
+            <div className="mt-12 bg-white rounded-2xl shadow-xl p-4 md:p-6 max-w-4xl mx-auto mb-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-purple-600" /> AI Coach Chat
               </h2>
