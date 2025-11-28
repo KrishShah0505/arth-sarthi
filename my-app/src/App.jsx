@@ -25,41 +25,57 @@ import { analyzeMoodFromQuery } from './utils/helpers';
 import './styles/animations.css';
 
 const App = () => {
+
+  // Prevent auto-scroll restore on refresh
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    });
+  }, []);
+
   // ==============================
   // 1. STATE MANAGEMENT
   // ==============================
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
   const [user, setUser] = useState(null);
 
-  // Data States
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [savingsStats, setSavingsStats] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [goals, setGoals] = useState([]);
   const [groups, setGroups] = useState([]);
 
-  // UI States
   const [activeTab, setActiveTab] = useState('chat');
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([{
-    text: "Hello! I'm your FinCoach. I can help you track expenses, set goals, or analyze your spending.",
-    isUser: false
-  }]);
-  
-  // VOICE STATE
+  const [messages, setMessages] = useState([
+    {
+      text: "Hello! I'm your FinCoach. I can help you track expenses, set goals, or analyze your spending.",
+      isUser: false
+    }
+  ]);
+
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
-  // Game States
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [challengeCompleted, setChallengeCompleted] = useState(false);
   const [mood, setMood] = useState('motivational');
 
+  const [loadingDashboard, setLoadingDashboard] = useState(true); // 🔥 Fix scroll jump
+
   const chatEndRef = useRef(null);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -85,67 +101,37 @@ const App = () => {
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
-      
-      // CONFIGURATION FOR MANUAL STOP
-      recognition.lang = 'en-IN'; 
-      recognition.continuous = true; // <--- Kept TRUE so it doesn't auto-stop
-      recognition.interimResults = true; // Show text as you speak
-
-      recognition.onstart = () => {
-        console.log("Mic active...");
-      };
+      recognition.lang = 'en-IN';
+      recognition.continuous = true;
+      recognition.interimResults = true;
 
       recognition.onresult = (event) => {
-        // Construct the full sentence from all results in this session
         let transcript = '';
         for (let i = 0; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
         }
-        // Only set input if we have text (prevents clearing if silent)
-        if (transcript.trim()) {
-          setInput(transcript);
-        }
+        if (transcript.trim()) setInput(transcript);
       };
 
-      recognition.onerror = (event) => {
-        console.error("Speech error:", event.error);
-        // Optional: Stop on serious errors, but keep going on 'no-speech'
-        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-           setIsListening(false);
-        }
-      };
-
-      // REMOVED auto-stop logic here. 
-      // The mic will only stop when `isListening` becomes false via user click.
       recognition.onend = () => {
         if (isListening) {
-           // If the browser stops it (timeout), but user didn't click stop, 
-           // we can try to restart or just let it close. 
-           // For a smoother "Manual Stop" feel, we often restart it here:
-           try {
-             recognition.start();
-           } catch(e) {
-             // Already started or ignoring
-           }
+          try {
+            recognition.start();
+          } catch (e) {}
         }
       };
 
       recognition.start();
     }
 
-    // CLEANUP: This runs when `isListening` turns FALSE (User clicks button)
     return () => {
-      if (recognition) {
-        recognition.stop(); 
-        console.log("Mic stopped manually.");
-      }
+      if (recognition) recognition.stop();
     };
   }, [isListening]);
 
   // ==============================
   // 3. HANDLERS
   // ==============================
-
   const handleLoginSuccess = (credentialResponse) => {
     const t = credentialResponse.credential;
     setToken(t);
@@ -157,8 +143,16 @@ const App = () => {
 
   const loadDashboardData = async () => {
     try {
-      setIsProcessing(true);
-      const [userData, lbData, stats, txData, goalsData, groupsData] = await Promise.all([
+      setLoadingDashboard(true); // 🔥 start loading screen
+
+      const [
+        userData,
+        lbData,
+        stats,
+        txData,
+        goalsData,
+        groupsData
+      ] = await Promise.all([
         API.fetchUserData(),
         API.fetchLeaderboard(),
         API.fetchSavingsStats(),
@@ -173,7 +167,7 @@ const App = () => {
       setTransactions(txData);
       setGoals(goalsData);
       setGroups(groupsData);
-      
+
       if (userData?.moodState) {
         setMood(userData.moodState.toLowerCase());
       }
@@ -181,7 +175,7 @@ const App = () => {
     } catch (error) {
       console.error("Load Error:", error);
     } finally {
-      setIsProcessing(false);
+      setLoadingDashboard(false); // 🔥 dashboard loaded, safe to render
     }
   };
 
@@ -204,16 +198,14 @@ const App = () => {
         amount: Number(expenseData.amount),
         category: expenseData.category || 'Expense'
       });
-      
+
       setIsExpenseModalOpen(false);
       await loadDashboardData();
-      
-      setMessages(prev => [...prev, { 
-        text: `✅ I've recorded ₹${expenseData.amount} for ${expenseData.title || 'Expense'}.`, 
-        isUser: false 
+
+      setMessages(prev => [...prev, {
+        text: `✅ I've recorded ₹${expenseData.amount} for ${expenseData.title || 'Expense'}.`,
+        isUser: false
       }]);
-    } catch (error) {
-      console.error("Failed to add expense", error);
     } finally {
       setIsProcessing(false);
     }
@@ -221,64 +213,53 @@ const App = () => {
 
   const handleSubmit = async () => {
     if (!input.trim() || isProcessing) return;
-
-    // Stop listening if user hits send while mic is open
     if (isListening) setIsListening(false);
 
     const userMessage = input.trim();
     setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
     setInput('');
     setIsProcessing(true);
-    
+
     const detectedMood = analyzeMoodFromQuery(userMessage);
     setMood(detectedMood);
 
     try {
       let responseText = "";
-      
+
       if (userMessage.toLowerCase().includes("at") && userMessage.match(/rs\.?\s?\d+/i)) {
-         try {
-           const parsed = await API.parseSMS(userMessage);
-           responseText = `✅ Recorded expense: ₹${parsed.amount} at ${parsed.merchant}.`;
-           loadDashboardData();
-         } catch (e) {
-           responseText = "I couldn't parse that. Try: 'Paid Rs 500 at Starbucks'";
-         }
-      } 
-      else if (userMessage.toLowerCase().startsWith("add goal")) {
-        const parts = userMessage.split(" ");
-        if (parts.length >= 4) {
-           const amount = parts.pop();
-           const title = parts.slice(2).join(" ");
-           await API.addGoal({ title, target: amount });
-           responseText = `🎯 Goal '${title}' added with target ₹${amount}!`;
-           loadDashboardData();
-        } else {
-           responseText = "To add a goal, say: 'Add goal [Name] [Amount]'";
+        try {
+          const parsed = await API.parseSMS(userMessage);
+          responseText = `✅ Recorded expense: ₹${parsed.amount} at ${parsed.merchant}.`;
+          loadDashboardData();
+        } catch {
+          responseText = "I couldn't parse that. Try: 'Paid Rs 500 at Starbucks'";
         }
-      }
-      else {
+      } else {
         const aiRes = await API.getAIAdvice();
         responseText = aiRes.message;
       }
 
-      setMessages(prev => [...prev, { 
-        text: responseText, 
-        isUser: false,
-        mood: detectedMood 
-      }]);
+      setMessages(prev => [...prev, { text: responseText, isUser: false, mood: detectedMood }]);
 
-    } catch (err) {
-      setMessages(prev => [...prev, { text: "Error connecting to FinCoach brain.", isUser: false }]);
     } finally {
       setIsProcessing(false);
     }
   };
 
   // ==============================
-  // 4. RENDER
+  // 4. LOADING SCREEN FIX
   // ==============================
+  if (loadingDashboard) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <p className="text-gray-600 font-medium animate-pulse text-lg">Loading your dashboard…</p>
+      </div>
+    );
+  }
 
+  // ==============================
+  // 5. AUTH SCREEN (unchanged)
+  // ==============================
   if (!token) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
@@ -290,7 +271,7 @@ const App = () => {
           <p className="text-gray-600 mb-8">Your AI Financial Companion</p>
           <div className="space-y-4">
             <div className="flex justify-center">
-               <GoogleLogin onSuccess={handleLoginSuccess} onError={() => {}} useOneTap />
+              <GoogleLogin onSuccess={handleLoginSuccess} />
             </div>
             <p className="text-center text-gray-400 text-sm">OR</p>
             <button
@@ -305,20 +286,23 @@ const App = () => {
     );
   }
 
+  // ==============================
+  // 6. MAIN APP RENDER
+  // ==============================
   const currentBalance = savingsStats?.balance || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col">
-      <Header 
-        level={Math.floor((user?.points || 0) / 100) + 1} 
-        xp={(user?.points || 0) % 100} 
-        maxXp={100} 
-        points={user?.points || 0} 
-        mood={mood} 
+      <Header
+        level={Math.floor((user?.points || 0) / 100) + 1}
+        xp={(user?.points || 0) % 100}
+        maxXp={100}
+        points={user?.points || 0}
+        mood={mood}
       />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 flex flex-col">
-        {/* Floating Balance Card */}
+
         <div className="relative -mt-16 mb-6 z-20 mx-auto w-full max-w-xl px-2">
           <BalanceCard balance={currentBalance} growth="+5%" />
         </div>
@@ -327,26 +311,24 @@ const App = () => {
 
         {activeTab === 'chat' && (
           <div className="animate-fade-in pb-24">
+
+            {/* DAILY CHALLENGE — FIXED: WILL NOT FLASH ANYMORE */}
             <div className="mb-6">
-              {goals.length > 0 ? (
-                <DailyChallenge 
-                  challenge={`Add funds to: ${goals[0].title}`} 
-                  completed={challengeCompleted} 
-                  onComplete={() => handleGoalComplete(goals[0].id)} 
+              {goals.length > 0 && (
+                <DailyChallenge
+                  challenge={`Add funds to: ${goals[0].title}`}
+                  completed={challengeCompleted}
+                  onComplete={() => handleGoalComplete(goals[0].id)}
                 />
-              ) : (
-                <div className="bg-blue-100 p-4 rounded-xl text-blue-800 text-center">
-                  🎯 Type <strong>"Add goal [Name] [Amount]"</strong> to start saving!
-                </div>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <InsightCard icon={TrendingUp} title="Total Saved" value={`₹${savingsStats?.savings || 0}`} color="border-green-600" onClick={() => setInput("Show my savings")} />
-              <InsightCard icon={AlertCircle} title="Total Spent" value={`₹${savingsStats?.totalSpent || 0}`} color="border-yellow-600" onClick={() => setInput("Analyze my spending")} />
-              <InsightCard icon={Flame} title="Global Rank" value={`#${leaderboardData.findIndex(u => u.id === 'user_1') + 1 || '-'}`} color="border-orange-600" onClick={() => setActiveTab('leaderboard')} />
+              <InsightCard icon={TrendingUp} title="Total Saved" value={`₹${savingsStats?.savings || 0}`} color="border-green-600" />
+              <InsightCard icon={AlertCircle} title="Total Spent" value={`₹${savingsStats?.totalSpent || 0}`} color="border-yellow-600" />
+              <InsightCard icon={Flame} title="Global Rank" value={`#${leaderboardData.findIndex(u => u.id === 'user_1') + 1 || '-'}`} color="border-orange-600" />
 
-              <div className="md:col-span-3 flex justify-center mt-2">
+              <div className="md:col-span-3 flex justify-center mt-5">
                 <button
                   onClick={() => setIsExpenseModalOpen(true)}
                   className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-5 rounded-full shadow-lg hover:scale-105 transition-all font-bold"
@@ -356,8 +338,13 @@ const App = () => {
               </div>
             </div>
 
-            <VoiceCircle isListening={isListening} onToggleListen={() => setIsListening(!isListening)} level={1} mood={mood} />
-            
+            <VoiceCircle
+              isListening={isListening}
+              onToggleListen={() => setIsListening(!isListening)}
+              level={1}
+              mood={mood}
+            />
+
             <AddExpenseModal
               isOpen={isExpenseModalOpen}
               onClose={() => setIsExpenseModalOpen(false)}
@@ -369,9 +356,9 @@ const App = () => {
                 <h3 className="text-lg font-bold mb-2 text-gray-800">Recent Activity</h3>
                 <ul className="space-y-2">
                   {transactions.slice(0, 5).map((tx, idx) => (
-                    <li key={tx.id || idx} className="flex justify-between items-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <li key={idx} className="flex justify-between items-center p-3 rounded-xl bg-gray-50 border border-gray-100">
                       <div>
-                        <p className="font-bold text-gray-800">{tx.merchant || tx.title || 'Expense'}</p>
+                        <p className="font-bold text-gray-800">{tx.merchant}</p>
                         <p className="text-xs text-gray-500">{tx.category} • {tx.date}</p>
                       </div>
                       <p className="font-bold text-red-500">-₹{tx.amount}</p>
@@ -387,43 +374,48 @@ const App = () => {
               </h2>
               <div className="max-h-80 overflow-y-auto pr-2">
                 {messages.map((msg, idx) => (
-                  <ChatMessage key={idx} message={msg.text} isUser={msg.isUser} xpGained={msg.xpGained} mood={msg.mood || mood} />
+                  <ChatMessage
+                    key={idx}
+                    message={msg.text}
+                    isUser={msg.isUser}
+                    mood={msg.mood || mood}
+                  />
                 ))}
                 {isProcessing && <div className="text-gray-400 text-sm animate-pulse ml-4">Thinking...</div>}
                 <div ref={chatEndRef} />
               </div>
             </div>
 
-            {/* Mic Click Handler integrated with Voice Logic */}
-            <InputBox 
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
-              onSubmit={handleSubmit} 
+            <InputBox
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onSubmit={handleSubmit}
               disabled={isProcessing}
-              onMicClick={() => setIsListening(!isListening)} 
+              onMicClick={() => setIsListening(!isListening)}
             />
           </div>
         )}
 
         {activeTab === 'leaderboard' && (
-           <div className="animate-slide-in">
-             <LeaderboardView leaderboardData={leaderboardData} /> 
-           </div>
+          <LeaderboardView leaderboardData={leaderboardData} />
         )}
 
         {activeTab === 'circle' && (
-           <div className="animate-slide-in">
-             <CircleView 
-                groups={groups} 
-                onCreateGroup={(name) => API.createGroup(name).then(loadDashboardData)}
-                onJoinGroup={(code) => API.joinGroup(code).then(loadDashboardData)}
-                mood={mood} 
-             />
-           </div>
+          <CircleView
+            groups={groups}
+            onCreateGroup={(name) => API.createGroup(name).then(loadDashboardData)}
+            onJoinGroup={(code) => API.joinGroup(code).then(loadDashboardData)}
+            mood={mood}
+          />
         )}
       </main>
 
-      {showLevelUp && <LevelUpModal level={Math.floor((user?.points || 0)/100)} onClose={() => setShowLevelUp(false)} />}
+      {showLevelUp && (
+        <LevelUpModal
+          level={Math.floor((user?.points || 0) / 100)}
+          onClose={() => setShowLevelUp(false)}
+        />
+      )}
       <Confetti show={showConfetti} />
     </div>
   );
