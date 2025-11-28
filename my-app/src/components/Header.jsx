@@ -8,7 +8,7 @@ const Header = ({ level, xp, maxXp, points, mood }) => {
   
   return (
     <header
-  className={`bg-gradient-to-r ${moodData.color} text-white p-10 pb-20 rounded-b-3xl shadow-lg relative z-10`}
+  className={`bg-gradient-to-r ${moodData.color} text-white p-10 pb-20 md:rounded-b-3xl lg:rounded-b-4xl shadow-lg relative z-10`}
 >
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 md:mb-2 gap-3">
