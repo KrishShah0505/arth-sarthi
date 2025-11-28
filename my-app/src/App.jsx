@@ -19,6 +19,7 @@ import LevelUpModal from './components/LevelUpModal';
 import Confetti from './components/Confetti';
 import BalanceCard from './components/BalanceCard';
 import AddExpenseModal from './components/AddExpenseModal';
+import ProfileModal from './components/ProfileModal'; // <--- IMPORT
 
 // --- Utils ---
 import { analyzeMoodFromQuery } from './utils/helpers';
@@ -46,10 +47,11 @@ const App = () => {
     isUser: false
   }]);
   
-  // VOICE STATE
+  // MODAL STATES
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false); // <--- NEW
 
   // Game States
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -86,22 +88,19 @@ const App = () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
       
-      // CONFIGURATION FOR MANUAL STOP
       recognition.lang = 'en-IN'; 
-      recognition.continuous = true; // <--- Kept TRUE so it doesn't auto-stop
-      recognition.interimResults = true; // Show text as you speak
+      recognition.continuous = true; 
+      recognition.interimResults = true; 
 
       recognition.onstart = () => {
         console.log("Mic active...");
       };
 
       recognition.onresult = (event) => {
-        // Construct the full sentence from all results in this session
         let transcript = '';
         for (let i = 0; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
         }
-        // Only set input if we have text (prevents clearing if silent)
         if (transcript.trim()) {
           setInput(transcript);
         }
@@ -109,31 +108,20 @@ const App = () => {
 
       recognition.onerror = (event) => {
         console.error("Speech error:", event.error);
-        // Optional: Stop on serious errors, but keep going on 'no-speech'
         if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
            setIsListening(false);
         }
       };
 
-      // REMOVED auto-stop logic here. 
-      // The mic will only stop when `isListening` becomes false via user click.
       recognition.onend = () => {
         if (isListening) {
-           // If the browser stops it (timeout), but user didn't click stop, 
-           // we can try to restart or just let it close. 
-           // For a smoother "Manual Stop" feel, we often restart it here:
-           try {
-             recognition.start();
-           } catch(e) {
-             // Already started or ignoring
-           }
+           try { recognition.start(); } catch(e) {}
         }
       };
 
       recognition.start();
     }
 
-    // CLEANUP: This runs when `isListening` turns FALSE (User clicks button)
     return () => {
       if (recognition) {
         recognition.stop(); 
@@ -153,6 +141,23 @@ const App = () => {
 
   const handleGuestLogin = () => {
     setToken("guest_mode");
+  };
+
+  const handleLogout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('auth_token');
+    API.setAuthToken(null);
+  };
+
+  const handleUpdateProfile = async (updatedData) => {
+    try {
+      const newUser = await API.updateProfile(updatedData);
+      setUser(newUser);
+      loadDashboardData(); // Refresh stats based on new income/budget
+    } catch (error) {
+      console.error("Profile update failed", error);
+    }
   };
 
   const loadDashboardData = async () => {
@@ -180,6 +185,7 @@ const App = () => {
 
     } catch (error) {
       console.error("Load Error:", error);
+      if (error.response?.status === 401) handleLogout();
     } finally {
       setIsProcessing(false);
     }
@@ -222,7 +228,6 @@ const App = () => {
   const handleSubmit = async () => {
     if (!input.trim() || isProcessing) return;
 
-    // Stop listening if user hits send while mic is open
     if (isListening) setIsListening(false);
 
     const userMessage = input.trim();
@@ -315,10 +320,19 @@ const App = () => {
         maxXp={100} 
         points={user?.points || 0} 
         mood={mood} 
+        onProfileClick={() => setIsProfileOpen(true)} // <--- CONNECTED
+      />
+
+      {/* PROFILE MODAL */}
+      <ProfileModal 
+        isOpen={isProfileOpen} 
+        onClose={() => setIsProfileOpen(false)} 
+        user={user}
+        onLogout={handleLogout}
+        onUpdateProfile={handleUpdateProfile}
       />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 flex flex-col">
-        {/* Floating Balance Card */}
         <div className="relative -mt-16 mb-6 z-20 mx-auto w-full max-w-xl px-2">
           <BalanceCard balance={currentBalance} growth="+5%" />
         </div>
@@ -394,7 +408,6 @@ const App = () => {
               </div>
             </div>
 
-            {/* Mic Click Handler integrated with Voice Logic */}
             <InputBox 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
