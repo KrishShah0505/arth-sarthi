@@ -22,25 +22,21 @@ export const moodProfiles = {
   supportive: {
     greeting: "Hey friend! 💙 I noticed something in your spending...",
     tone: "warm and encouraging",
-    emoji: "💙",
     color: "from-blue-400 to-cyan-400"
   },
   analytical: {
     greeting: "Let me analyze this for you 📊",
     tone: "data-driven and precise",
-    emoji: "📊",
     color: "from-purple-400 to-indigo-400"
   },
   motivational: {
     greeting: "You're doing great! Let's level up! 🚀",
     tone: "energetic and inspiring",
-    emoji: "🚀",
     color: "from-orange-400 to-pink-400"
   },
   concerned: {
     greeting: "I'm here to help you 🤝",
     tone: "caring and protective",
-    emoji: "🤝",
     color: "from-yellow-400 to-orange-400"
   }
 };
