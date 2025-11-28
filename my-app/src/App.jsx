@@ -17,6 +17,7 @@ import InsightCard from './components/InsightCard';
 import DailyChallenge from './components/DailyChallenge';
 import LevelUpModal from './components/LevelUpModal';
 import Confetti from './components/Confetti';
+import BalanceCard from './components/BalanceCard';
 
 // --- Utils ---
 import { moodProfiles } from './data/financialData';
@@ -192,7 +193,27 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <Header level={level} xp={xp} maxXp={maxXp} points={points} mood={mood} />
+    <Header 
+  level={level} 
+  xp={xp} 
+  maxXp={maxXp} 
+  points={points} 
+  mood={mood} 
+/>
+
+{/* Overlapping Balance Card */}
+<div className="absolute left-1/2 transform -translate-x-1/2 top-[170px] z-50 w-[85%] max-w-xl">
+  <BalanceCard 
+    balance={savingsStats?.balance || 124567}
+    growth="+12.5%"
+  />
+</div>
+
+{/* Spacer so content starts below the floating card */}
+<div className="h-[130px]"></div>
+
+
+
       
       <main className="max-w-6xl mx-auto p-4">
         <NavigationTabs activeTab={activeTab} setActiveTab={setActiveTab} />

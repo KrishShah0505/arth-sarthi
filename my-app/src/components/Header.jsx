@@ -7,7 +7,9 @@ const Header = ({ level, xp, maxXp, points, mood }) => {
   const moodData = moodProfiles[mood] || moodProfiles.motivational;
   
   return (
-    <header className={`bg-gradient-to-r ${moodData.color} text-white p-4 shadow-lg sticky top-0 z-50`}>
+    <header
+  className={`bg-gradient-to-r ${moodData.color} text-white p-10 pb-20 rounded-b-3xl shadow-lg relative z-10`}
+>
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 md:mb-2 gap-3">
           {/* Logo & Mood Section */}
