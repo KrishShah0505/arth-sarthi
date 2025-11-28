@@ -45,6 +45,8 @@ const App = () => {
     text: "Hello! I'm your FinCoach. I can help you track expenses, set goals, or analyze your spending.",
     isUser: false
   }]);
+  
+  // VOICE STATE
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
@@ -69,7 +71,79 @@ const App = () => {
   }, [token]);
 
   // ==============================
-  // 2. HANDLERS
+  // 2. CONTINUOUS VOICE RECOGNITION
+  // ==============================
+  useEffect(() => {
+    let recognition;
+
+    if (isListening) {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Voice input is not supported in this browser. Try Chrome.");
+        setIsListening(false);
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      
+      // CONFIGURATION FOR MANUAL STOP
+      recognition.lang = 'en-IN'; 
+      recognition.continuous = true; // <--- Kept TRUE so it doesn't auto-stop
+      recognition.interimResults = true; // Show text as you speak
+
+      recognition.onstart = () => {
+        console.log("Mic active...");
+      };
+
+      recognition.onresult = (event) => {
+        // Construct the full sentence from all results in this session
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        // Only set input if we have text (prevents clearing if silent)
+        if (transcript.trim()) {
+          setInput(transcript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech error:", event.error);
+        // Optional: Stop on serious errors, but keep going on 'no-speech'
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+           setIsListening(false);
+        }
+      };
+
+      // REMOVED auto-stop logic here. 
+      // The mic will only stop when `isListening` becomes false via user click.
+      recognition.onend = () => {
+        if (isListening) {
+           // If the browser stops it (timeout), but user didn't click stop, 
+           // we can try to restart or just let it close. 
+           // For a smoother "Manual Stop" feel, we often restart it here:
+           try {
+             recognition.start();
+           } catch(e) {
+             // Already started or ignoring
+           }
+        }
+      };
+
+      recognition.start();
+    }
+
+    // CLEANUP: This runs when `isListening` turns FALSE (User clicks button)
+    return () => {
+      if (recognition) {
+        recognition.stop(); 
+        console.log("Mic stopped manually.");
+      }
+    };
+  }, [isListening]);
+
+  // ==============================
+  // 3. HANDLERS
   // ==============================
 
   const handleLoginSuccess = (credentialResponse) => {
@@ -148,6 +222,9 @@ const App = () => {
   const handleSubmit = async () => {
     if (!input.trim() || isProcessing) return;
 
+    // Stop listening if user hits send while mic is open
+    if (isListening) setIsListening(false);
+
     const userMessage = input.trim();
     setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
     setInput('');
@@ -199,7 +276,7 @@ const App = () => {
   };
 
   // ==============================
-  // 3. RENDER
+  // 4. RENDER
   // ==============================
 
   if (!token) {
@@ -317,7 +394,7 @@ const App = () => {
               </div>
             </div>
 
-            {/* Pass onMicClick to InputBox to toggle voice mode */}
+            {/* Mic Click Handler integrated with Voice Logic */}
             <InputBox 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 

@@ -50,9 +50,9 @@ const VoiceCircle = ({ isListening, onToggleListen, level, mood }) => {
            </div>
 
           {/* Level badge */}
-          <div className="absolute -top-1 -right-1 md:-top-3 md:-right-3 bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-full w-10 h-10 md:w-14 md:h-14 flex items-center justify-center font-bold text-sm md:text-xl shadow-lg border-2 md:border-4 border-white transform hover:rotate-12 transition-transform z-30">
+          {/* <div className="absolute -top-1 -right-1 md:-top-3 md:-right-3 bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-full w-10 h-10 md:w-14 md:h-14 flex items-center justify-center font-bold text-sm md:text-xl shadow-lg border-2 md:border-4 border-white transform hover:rotate-12 transition-transform z-30">
             {level}
-          </div>
+          </div> */}
           
           {/* Mood indicator */}
           <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white text-lg md:text-2xl px-2 md:px-3 py-0.5 md:py-1 rounded-full shadow-lg border-2 border-gray-200 whitespace-nowrap z-30">
@@ -64,7 +64,7 @@ const VoiceCircle = ({ isListening, onToggleListen, level, mood }) => {
       <p className={`mt-8 md:mt-12 font-bold text-sm md:text-lg transition-all duration-300 text-center px-4 ${isListening ? 'scale-105 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600' : 'text-gray-600'}`}>
         {isListening ? (
           <span className="flex items-center justify-center gap-2 animate-pulse">
-            <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+            <span className="inline-block w-2 h-2"></span>
             Listening...
           </span>
         ) : (
