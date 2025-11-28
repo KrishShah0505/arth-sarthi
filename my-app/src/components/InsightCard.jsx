@@ -4,22 +4,22 @@ import { Flame } from 'lucide-react';
 const InsightCard = ({ icon: Icon, title, value, color, streak, onClick }) => (
   <button
     onClick={onClick}
-    className={`bg-white p-4 rounded-xl shadow-md border-l-4 ${color} hover:scale-105 hover:shadow-xl transition-all cursor-pointer w-full text-left`}
+    className={`bg-white p-4 rounded-xl shadow-md border-l-4 ${color} active:scale-95 hover:scale-[1.02] hover:shadow-xl transition-all cursor-pointer w-full text-left touch-manipulation`}
   >
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${color.replace('border', 'bg').replace('600', '100')}`}>
-          <Icon className={`w-6 h-6 ${color.replace('border', 'text')}`} />
+        <div className={`p-2 rounded-lg shrink-0 ${color.replace('border', 'bg').replace('600', '100')}`}>
+          <Icon className={`w-5 h-5 md:w-6 md:h-6 ${color.replace('border', 'text')}`} />
         </div>
         <div>
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className="text-xl font-bold text-gray-800">{value}</p>
+          <p className="text-xs md:text-sm text-gray-600">{title}</p>
+          <p className="text-lg md:text-xl font-bold text-gray-800 break-all">{value}</p>
         </div>
       </div>
       {streak && (
-        <div className="flex items-center gap-1 bg-orange-100 px-2 py-1 rounded-full">
-          <Flame className="w-4 h-4 text-orange-500" />
-          <span className="text-sm font-bold text-orange-600">{streak}</span>
+        <div className="flex items-center gap-1 bg-orange-100 px-2 py-1 rounded-full shrink-0">
+          <Flame className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
+          <span className="text-xs md:text-sm font-bold text-orange-600">{streak}</span>
         </div>
       )}
     </div>
