@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, LogOut, Save, User, Wallet } from 'lucide-react';
+import { X, LogOut, Save, Wallet, HelpCircle } from 'lucide-react';
 
 const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
   const [formData, setFormData] = useState({
@@ -8,7 +8,7 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  // Initialize form with user data when modal opens
+  // Initialize form safely
   useEffect(() => {
     if (user) {
       setFormData({
@@ -21,7 +21,6 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
-    // Ensure we send numbers
     await onUpdateProfile({
       income: parseFloat(formData.income),
       budgetLimit: parseFloat(formData.budgetLimit)
@@ -30,7 +29,12 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
     onClose();
   };
 
-  if (!isOpen || !user) return null;
+  // FIX: Only check isOpen. Do not block if user is null.
+  if (!isOpen) return null;
+
+  const userName = user?.name || 'Guest User';
+  const userEmail = user?.email || 'No email linked';
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
@@ -46,12 +50,12 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
           </button>
           
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl border-2 border-white/50 backdrop-blur-md">
-              {user.name ? user.name[0].toUpperCase() : 'U'}
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl border-2 border-white/50 backdrop-blur-md font-bold">
+              {userInitial}
             </div>
             <div>
-              <h2 className="text-xl font-bold">{user.name}</h2>
-              <p className="text-sm text-white/80">{user.email}</p>
+              <h2 className="text-xl font-bold">{userName}</h2>
+              <p className="text-sm text-white/80">{userEmail}</p>
             </div>
           </div>
         </div>
@@ -109,15 +113,28 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
           </form>
 
           {/* Divider */}
-          <div className="h-px bg-gray-100 my-6"></div>
+          <div className="h-px bg-gray-200 my-5"></div>
 
-          {/* Logout */}
-          <button 
-            onClick={onLogout}
-            className="w-full border-2 border-red-100 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-2"
-          >
-            <LogOut size={18} /> Log Out
-          </button>
+          {/* Links Section */}
+          <div className="space-y-3">
+            <a 
+              href="#" 
+              onClick={(e) => e.preventDefault()} // Placeholder logic
+              className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition font-semibold cursor-pointer"
+            >
+              <HelpCircle size={20} />
+              Financial Tips
+            </a>
+
+            <button 
+              onClick={onLogout}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-red-100 text-red-600 hover:bg-red-50 transition font-bold"
+            >
+              <LogOut size={20} /> 
+              Log Out
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
