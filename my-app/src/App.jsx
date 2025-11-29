@@ -57,7 +57,7 @@ const App = () => {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [challengeCompleted, setChallengeCompleted] = useState(false);
-  const [mood, setMood] = useState('impulsive');
+  const [mood, setMood] = useState('motivational');
 
   const chatEndRef = useRef(null);
 
@@ -234,24 +234,21 @@ const App = () => {
     }
   };
 
-  // --- NEW: AI ADVISOR HANDLER ---
   const handleAiAdvice = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
     
-    // Add visual feedback that AI is thinking
     setMessages(prev => [...prev, { text: "🧠 Analyzing your finances...", isUser: false, isThinking: true }]);
 
     try {
       const aiRes = await API.getAIAdvice();
       
-      // Remove thinking message and add real response
       setMessages(prev => [
         ...prev.filter(m => !m.isThinking), 
         { 
           text: aiRes.message || "Here is some financial advice based on your spending!", 
           isUser: false,
-          mood: 'neutral'
+          mood: 'analytical'
         }
       ]);
     } catch (err) {
@@ -302,10 +299,6 @@ const App = () => {
         }
       }
       else {
-        // Fallback generic response if no keywords matched
-        // Note: The 'Brain' button calls getAIAdvice explicitly.
-        // Here we just give a default response or call AI if you prefer.
-        // For now, let's keep it simple or call AI if it's a question.
         const aiRes = await API.getAIAdvice();
         responseText = aiRes.message;
       }
@@ -352,6 +345,9 @@ const App = () => {
       </div>
     );
   }
+
+  // Ensure user object exists before main render
+  if (!user) return null;
 
   const currentBalance = savingsStats?.balance || 0;
 
@@ -456,7 +452,7 @@ const App = () => {
               onSubmit={handleSubmit} 
               disabled={isProcessing}
               onMicClick={() => setIsListening(!isListening)} 
-              onAiClick={handleAiAdvice} // <--- WIRED HERE
+              onAiClick={handleAiAdvice} 
             />
           </div>
         )}
@@ -471,8 +467,11 @@ const App = () => {
            <div className="animate-slide-in">
              <CircleView 
                 groups={groups} 
+                userId={user.id} // <-- IMPORTANT: Passed User ID
                 onCreateGroup={(name) => API.createGroup(name).then(loadDashboardData)}
                 onJoinGroup={(code) => API.joinGroup(code).then(loadDashboardData)}
+                onLeaveGroup={(id) => API.leaveGroup(id).then(loadDashboardData)} // Wire Leave
+                onContribute={(gid, amt) => API.contributeToGroup(gid, amt).then(loadDashboardData)} // Wire Contribute
                 mood={mood} 
              />
            </div>

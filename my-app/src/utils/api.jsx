@@ -30,7 +30,6 @@ const RealAPI = {
   
   fetchSavingsStats: async () => {
     const stats = (await RealAPI.api.get('/user/savings')).data;
-    // Calculate balance if missing
     if (stats.balance === undefined) {
       const user = (await RealAPI.api.get('/user/me')).data;
       const balance = (user.income || 0) - (stats.totalSpent || 0);
@@ -50,28 +49,26 @@ const RealAPI = {
   },
 
   fetchGoals: async () => (await RealAPI.api.get('/goals')).data,
-  
   addGoal: async (goalData) => (await RealAPI.api.post('/goals', goalData)).data,
-  
   addGoalProgress: async (id, amount) => {
     return (await RealAPI.api.patch(`/goals/${id}/progress`, { amount })).data;
   },
 
   fetchGroups: async () => (await RealAPI.api.get('/groups/my')).data,
-
   createGroup: async (groupData) => (await RealAPI.api.post('/groups', groupData)).data,
-
   joinGroup: async (groupCode) => (await RealAPI.api.post('/groups/join', { groupCode })).data,
+  
+  // --- NEW ENDPOINTS ---
+  leaveGroup: async (groupId) => (await RealAPI.api.post('/groups/leave', { groupId })).data,
+  contributeToGroup: async (goalId, amount) => (await RealAPI.api.post('/goals/contribute', { goalId, amount })).data,
 
   getAIAdvice: async () => (await RealAPI.api.get('/ai/recommend')).data,
-
   updateProfile: async (data) => (await RealAPI.api.patch('/user/profile', data)).data,
 };
 
 // ==========================================
 // 2️⃣ MOCK IMPLEMENTATION (Local Storage)
 // ==========================================
-// Initial Data
 const DB_DEFAULTS = {
   user: {
     id: 'user_1',
@@ -97,18 +94,18 @@ const DB_DEFAULTS = {
       id: 'g1', 
       name: 'Mumbai Savers', 
       groupCode: 'MUM123', 
-      totalSaved: 45000, 
-      // Mocking the new Goal Structure
+      createdById: 'user_2', // Demo user is NOT creator (so can leave)
       activeGoal: {
+        id: 'goal_1',
         title: 'Community Fund',
         target: 100000,
         progress: 45000,
         deadline: '2025-12-31'
       },
       members: [
-        { id: 'u2', name: 'Priya', saved: 20000 },
-        { id: 'user_1', name: 'You', saved: 15000 },
-        { id: 'u3', name: 'Rahul', saved: 10000 }
+        { id: 'u2', name: 'Priya', saved: 20000, user: { name: 'Priya' } },
+        { id: 'user_1', name: 'You', saved: 15000, user: { name: 'You' } },
+        { id: 'u3', name: 'Rahul', saved: 10000, user: { name: 'Rahul' } }
       ]
     }
   ],
@@ -215,17 +212,19 @@ const MockAPI = {
     await delay();
     const groups = getDB('groups');
     const newGroup = {
-      id: Date.now(),
+      id: `g_${Date.now()}`,
       name: groupData.name,
       groupCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
       totalSaved: 0,
+      createdById: 'user_1',
       activeGoal: {
+        id: `gg_${Date.now()}`,
         title: groupData.goalTitle,
         target: parseFloat(groupData.targetAmount),
         progress: 0,
         deadline: groupData.deadline
       },
-      members: [{ id: 'user_1', name: 'You', saved: 0 }]
+      members: [{ id: 'user_1', name: 'You', saved: 0, user: { name: 'You' } }]
     };
     groups.unshift(newGroup);
     saveDB('groups', groups);
@@ -235,13 +234,37 @@ const MockAPI = {
   joinGroup: async (groupCode) => {
     await delay();
     const groups = getDB('groups');
-    const group = groups.find(g => g.groupCode === groupCode);
-    if (!group) throw new Error("Invalid Group Code");
-    if (!group.members.find(m => m.id === 'user_1')) {
-      group.members.push({ id: 'user_1', name: 'You', saved: 0 });
-      saveDB('groups', groups);
+    // For mock, we just create a dummy group if code matches, or fail
+    const newGroup = { 
+        ...groups[0], 
+        id: `g_join_${Date.now()}`, 
+        name: 'Joined Group ' + groupCode,
+        createdById: 'other_user' // So we can leave it
+    };
+    groups.push(newGroup);
+    saveDB('groups', groups);
+    return newGroup;
+  },
+
+  leaveGroup: async (groupId) => {
+    await delay();
+    let groups = getDB('groups');
+    groups = groups.filter(g => g.id !== groupId);
+    saveDB('groups', groups);
+    return { message: "Left group" };
+  },
+
+  contributeToGroup: async (goalId, amount) => {
+    await delay();
+    const groups = getDB('groups');
+    const group = groups.find(g => g.activeGoal?.id === goalId);
+    if (group) {
+        group.activeGoal.progress += parseFloat(amount);
+        const me = group.members.find(m => m.id === 'user_1' || m.name === 'You');
+        if (me) me.saved += parseFloat(amount);
+        saveDB('groups', groups);
     }
-    return group;
+    return { message: "Contributed" };
   },
 
   getAIAdvice: async () => {
@@ -274,6 +297,8 @@ export const addGoalProgress = (i, a) => USE_MOCK ? MockAPI.addGoalProgress(i, a
 export const fetchGroups = () => USE_MOCK ? MockAPI.fetchGroups() : RealAPI.fetchGroups();
 export const createGroup = (d) => USE_MOCK ? MockAPI.createGroup(d) : RealAPI.createGroup(d);
 export const joinGroup = (c) => USE_MOCK ? MockAPI.joinGroup(c) : RealAPI.joinGroup(c);
+export const leaveGroup = (id) => USE_MOCK ? MockAPI.leaveGroup(id) : RealAPI.leaveGroup(id);
+export const contributeToGroup = (id, a) => USE_MOCK ? MockAPI.contributeToGroup(id, a) : RealAPI.contributeToGroup(id, a);
 export const getAIAdvice = () => USE_MOCK ? MockAPI.getAIAdvice() : RealAPI.getAIAdvice();
 export const updateProfile = (d) => USE_MOCK ? MockAPI.updateProfile(d) : RealAPI.updateProfile(d);
 
