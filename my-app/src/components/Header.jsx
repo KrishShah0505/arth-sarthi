@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, Trophy, User } from 'lucide-react';
+import { Star, Trophy, Menu } from 'lucide-react'; // Changed User to Menu
 import { moodProfiles } from '../data/financialData';
 import logo from '../assets/logo.png';
 
@@ -17,8 +17,8 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
           <div className="flex items-center justify-between w-full md:w-auto">
             <div className="flex items-center gap-3">
               
-              {/* ==== UPDATED LOGO SECTION ==== */}
-              <div className="relative ">
+              {/* ==== LOGO SECTION ==== */}
+              <div className="relative">
                 <img 
                   src={logo}
                   alt="logo"
@@ -28,7 +28,6 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
                   {moodData.emoji}
                 </div>
               </div>
-              {/* ================================= */}
 
               <div>
                 <h1 className="text-2xl font-bold leading-tight">Artha Saarthi</h1>
@@ -36,16 +35,16 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
               </div>
             </div>
 
-            {/* Mobile Profile Button */}
+            {/* Mobile Hamburger Button */}
             <button 
               onClick={onProfileClick}
               className="md:hidden bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition"
             >
-              <User className="w-6 h-6 text-white" />
+              <Menu className="w-6 h-6 text-white" />
             </button>
           </div>
 
-          {/* Stats + Desktop Profile Button */}
+          {/* Stats + Desktop Hamburger Button */}
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="flex items-center justify-between gap-3 w-full md:w-auto bg-black/20 md:bg-transparent p-1 md:p-0 rounded-xl">
               
@@ -60,12 +59,13 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
               </div>
             </div>
 
+            {/* Desktop Hamburger Button */}
             <button 
               onClick={onProfileClick}
               className="hidden md:flex bg-white/20 p-2.5 rounded-full backdrop-blur-md hover:bg-white/30 transition shadow-lg border border-white/10"
-              title="My Profile"
+              title="Menu"
             >
-              <User className="w-5 h-5 text-white" />
+              <Menu className="w-6 h-6 text-white" />
             </button>
           </div>
         </div>

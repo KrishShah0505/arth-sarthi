@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Send, Mic } from 'lucide-react';
+import { Send, Mic, Brain } from 'lucide-react';
 
-const InputBox = ({ value, onChange, onSubmit, disabled, onMicClick }) => {
+const InputBox = ({ value, onChange, onSubmit, disabled, onMicClick, onAiClick }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
@@ -9,7 +9,6 @@ const InputBox = ({ value, onChange, onSubmit, disabled, onMicClick }) => {
       <div className="relative">
         
         {/* === SIRI GLOW BOUNDARY === */}
-        {/* Glows when input is focused */}
         <div 
           className={`absolute -inset-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full blur-md transition-all duration-500 ${
             isFocused ? 'opacity-100 animate-pulse scale-[1.02]' : 'opacity-0 scale-100'
@@ -18,6 +17,20 @@ const InputBox = ({ value, onChange, onSubmit, disabled, onMicClick }) => {
 
         {/* Main Input Container */}
         <div className="relative flex items-center gap-2 bg-white rounded-full shadow-2xl p-2 border border-gray-100 transition-all">
+          
+          {/* 🧠 AI ADVISOR BUTTON */}
+          <button
+            onClick={onAiClick}
+            disabled={disabled}
+            className="p-2.5 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-full transition-all active:scale-95 disabled:opacity-50"
+            title="Ask AI Advisor"
+          >
+            <Brain className="w-6 h-6" />
+          </button>
+
+          {/* Separator */}
+          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
           <input
             type="text"
             value={value}
@@ -27,19 +40,20 @@ const InputBox = ({ value, onChange, onSubmit, disabled, onMicClick }) => {
             onKeyPress={(e) => e.key === 'Enter' && onSubmit()}
             placeholder="Type a message..."
             disabled={disabled}
-            className="flex-1 px-4 py-2 outline-none bg-transparent text-sm md:text-base min-w-0"
+            className="flex-1 px-2 py-2 outline-none bg-transparent text-sm md:text-base min-w-0"
           />
           
-          {/* 🎙️ SMALL MIC BUTTON */}
+          {/* 🎙️ MIC BUTTON */}
           <button
             onClick={onMicClick}
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
+            disabled={disabled}
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95 disabled:opacity-50"
             title="Tap to Speak"
           >
             <Mic className="w-5 h-5" />
           </button>
 
-          {/* Send Button */}
+          {/* SEND BUTTON */}
           <button
             onClick={onSubmit}
             disabled={disabled || !value.trim()}

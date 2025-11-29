@@ -19,8 +19,7 @@ import LevelUpModal from './components/LevelUpModal';
 import Confetti from './components/Confetti';
 import BalanceCard from './components/BalanceCard';
 import AddExpenseModal from './components/AddExpenseModal';
-import ProfileModal from './components/ProfileModal'; // <--- IMPORT
-
+import ProfileModal from './components/ProfileModal';
 
 // --- Utils ---
 import { analyzeMoodFromQuery } from './utils/helpers';
@@ -48,11 +47,11 @@ const App = () => {
     isUser: false
   }]);
   
-  // MODAL STATES
+  // MODAL & INTERACTION STATES
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // <--- NEW
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Game States
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -62,17 +61,18 @@ const App = () => {
 
   const chatEndRef = useRef(null);
 
- useEffect(() => {
-  if ("scrollRestoration" in window.history) {
-    window.history.scrollRestoration = "manual";
-  }
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    });
+  }, []);
 
-  // FIX: delay ensures React layout is complete before forcing scroll
-  requestAnimationFrame(() => {
-    window.scrollTo({ top: 0, behavior: "auto" });
-  });
-}, []);
-
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   useEffect(() => {
     if (token) {
@@ -163,7 +163,7 @@ const App = () => {
     try {
       const newUser = await API.updateProfile(updatedData);
       setUser(newUser);
-      loadDashboardData(); // Refresh stats based on new income/budget
+      loadDashboardData();
     } catch (error) {
       console.error("Profile update failed", error);
     }
@@ -234,6 +234,36 @@ const App = () => {
     }
   };
 
+  // --- NEW: AI ADVISOR HANDLER ---
+  const handleAiAdvice = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    
+    // Add visual feedback that AI is thinking
+    setMessages(prev => [...prev, { text: "🧠 Analyzing your finances...", isUser: false, isThinking: true }]);
+
+    try {
+      const aiRes = await API.getAIAdvice();
+      
+      // Remove thinking message and add real response
+      setMessages(prev => [
+        ...prev.filter(m => !m.isThinking), 
+        { 
+          text: aiRes.message || "Here is some financial advice based on your spending!", 
+          isUser: false,
+          mood: 'analytical'
+        }
+      ]);
+    } catch (err) {
+      setMessages(prev => [
+        ...prev.filter(m => !m.isThinking),
+        { text: "My brain is offline right now. 🧠💤 Try again later.", isUser: false }
+      ]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!input.trim() || isProcessing) return;
 
@@ -272,6 +302,10 @@ const App = () => {
         }
       }
       else {
+        // Fallback generic response if no keywords matched
+        // Note: The 'Brain' button calls getAIAdvice explicitly.
+        // Here we just give a default response or call AI if you prefer.
+        // For now, let's keep it simple or call AI if it's a question.
         const aiRes = await API.getAIAdvice();
         responseText = aiRes.message;
       }
@@ -329,10 +363,9 @@ const App = () => {
         maxXp={100} 
         points={user?.points || 0} 
         mood={mood} 
-        onProfileClick={() => setIsProfileOpen(true)} // <--- CONNECTED
+        onProfileClick={() => setIsProfileOpen(true)} 
       />
 
-      {/* PROFILE MODAL */}
       <ProfileModal 
         isOpen={isProfileOpen} 
         onClose={() => setIsProfileOpen(false)} 
@@ -423,6 +456,7 @@ const App = () => {
               onSubmit={handleSubmit} 
               disabled={isProcessing}
               onMicClick={() => setIsListening(!isListening)} 
+              onAiClick={handleAiAdvice} // <--- WIRED HERE
             />
           </div>
         )}
