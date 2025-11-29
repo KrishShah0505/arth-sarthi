@@ -1,254 +1,258 @@
 import React, { useState } from 'react';
-import { Users, Crown, Calendar, Target as TargetIcon, Plus, LogIn, TrendingUp } from 'lucide-react';
+import { Users, Crown, Calendar, Target as TargetIcon, Plus, LogIn, TrendingUp, ArrowLeft, LogOut, Wallet } from 'lucide-react';
 import { moodProfiles } from '../data/financialData';
 
-const CircleView = ({ groups = [], onCreateGroup, onJoinGroup, mood = "motivational" }) => {
-  // === State ===
-  const [createData, setCreateData] = useState({
-    name: '',
-    goalTitle: '',
-    targetAmount: '',
-    deadline: ''
-  });
+const CircleView = ({ groups = [], userId, onCreateGroup, onJoinGroup, onLeaveGroup, onContribute, mood = "motivational" }) => {
+  // Navigation States
+  const [view, setView] = useState('lobby'); // 'lobby', 'create_join', 'detail'
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  
+  // Form States
+  const [createData, setCreateData] = useState({ name: '', goalTitle: '', targetAmount: '', deadline: '' });
   const [joinCode, setJoinCode] = useState("");
-  const [activeTab, setActiveTab] = useState('join'); // 'join' or 'create'
+  const [subTab, setSubTab] = useState('join'); // 'join' or 'create' inside create_join view
+  const [contribAmount, setContribAmount] = useState('');
+  const [isContributeOpen, setIsContributeOpen] = useState(false);
 
-  // === Active Group ===
-  const activeGroup = groups.length > 0 ? groups[0] : null; 
+  const moodGradient = moodProfiles[mood]?.gradient || "from-purple-500 to-pink-500";
 
-  // === Mood Handling ===
-  const moodData = moodProfiles[mood] || moodProfiles.neutral;
-  const moodGradient = moodData.gradient;
-
-  // === Handlers ===
-  const handleCreateChange = (e) => {
-    setCreateData({ ...createData, [e.target.name]: e.target.value });
-  };
-
-  const submitCreateGroup = () => {
-    if (!createData.name || !createData.goalTitle || !createData.targetAmount) return;
-    onCreateGroup(createData);
+  // --- HANDLERS ---
+  const handleCreateSubmit = async () => {
+    if (!createData.name || !createData.goalTitle) return;
+    await onCreateGroup(createData);
     setCreateData({ name: '', goalTitle: '', targetAmount: '', deadline: '' });
+    setView('lobby');
   };
 
-  // === Render Join/Create Form if no active group ===
-  if (!activeGroup) {
+  const handleJoinSubmit = async () => {
+    if (!joinCode) return;
+    await onJoinGroup(joinCode);
+    setJoinCode("");
+    setView('lobby');
+  };
+
+  const handleLeaveSubmit = async () => {
+    if(window.confirm("Are you sure you want to leave this circle?")) {
+        await onLeaveGroup(selectedGroup.id);
+        setView('lobby');
+        setSelectedGroup(null);
+    }
+  };
+
+  const handleContributeSubmit = async () => {
+    if (!contribAmount || !selectedGroup.activeGoal?.id) return;
+    await onContribute(selectedGroup.activeGoal.id, parseFloat(contribAmount));
+    setContribAmount('');
+    setIsContributeOpen(false);
+    // Refresh happens via parent, but we can optimistically update UI if needed
+  };
+
+  // === VIEW 1: LOBBY (List of Groups) ===
+  if (view === 'lobby') {
     return (
-      <div className="max-w-xl mx-auto space-y-6 pb-20">
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-          <div className="text-center mb-6">
-            <Users className="w-16 h-16 mx-auto text-blue-500 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-800">Savings Circle</h2>
-            <p className="text-gray-500">Save together, compete, and reach goals faster!</p>
-          </div>
-
-          {/* Toggle Buttons */}
-          <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
-            <button
-              onClick={() => setActiveTab('join')}
-              className={`flex-1 py-2 rounded-md font-medium transition-all ${
-                activeTab === 'join' ? 'bg-white shadow text-blue-600' : 'text-gray-500'
-              }`}
+      <div className="max-w-2xl mx-auto space-y-6 pb-20 animate-fade-in">
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Users className="text-blue-600" /> My Circles
+            </h2>
+            <button 
+                onClick={() => setView('create_join')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md hover:scale-105 transition flex items-center gap-1"
             >
-              Join Existing
+                <Plus size={16} /> New Circle
             </button>
-            <button
-              onClick={() => setActiveTab('create')}
-              className={`flex-1 py-2 rounded-md font-medium transition-all ${
-                activeTab === 'create' ? 'bg-white shadow text-blue-600' : 'text-gray-500'
-              }`}
-            >
-              Create New
-            </button>
-          </div>
-
-          {/* JOIN FORM */}
-          {activeTab === 'join' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-gray-700">Have a Group Code?</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="Enter 6-char Code (e.g. X7K9L2)" 
-                    className="flex-1 p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
-                    value={joinCode}
-                    onChange={(e) => setJoinCode(e.target.value)}
-                  />
-                  <button 
-                    onClick={() => { if(joinCode) { onJoinGroup(joinCode); setJoinCode(""); } }}
-                    className="bg-blue-600 text-white px-6 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition"
-                  >
-                    <LogIn size={20} /> Join
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* CREATE FORM */}
-          {activeTab === 'create' && (
-            <div className="space-y-4 animate-fade-in">
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Group Name</label>
-                <input 
-                  name="name"
-                  type="text" 
-                  placeholder="e.g. Goa Trip 2025" 
-                  className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 mt-1"
-                  value={createData.name}
-                  onChange={handleCreateChange}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">Goal Title</label>
-                  <input 
-                    name="goalTitle"
-                    type="text" 
-                    placeholder="e.g. Hotel Booking" 
-                    className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 mt-1"
-                    value={createData.goalTitle}
-                    onChange={handleCreateChange}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">Target (₹)</label>
-                  <input 
-                    name="targetAmount"
-                    type="number" 
-                    placeholder="50000" 
-                    className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 mt-1"
-                    value={createData.targetAmount}
-                    onChange={handleCreateChange}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Deadline</label>
-                <input 
-                  name="deadline"
-                  type="date" 
-                  className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 mt-1 text-gray-700"
-                  value={createData.deadline}
-                  onChange={handleCreateChange}
-                />
-              </div>
-
-              <button 
-                onClick={submitCreateGroup}
-                className={`w-full py-3 mt-2 rounded-xl font-bold flex items-center justify-center gap-2 text-white transition shadow-lg
-                  bg-gradient-to-r from-purple-600 to-pink-600 hover:scale-[1.02]`}
-              >
-                <Plus size={20} /> Create Circle
-              </button>
-            </div>
-          )}
         </div>
+
+        {groups.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-10 h-10 text-blue-400" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-700">No Circles Yet</h3>
+                <p className="text-gray-500 mb-6 px-6">Join friends or create a squad to save together!</p>
+                <button 
+                    onClick={() => setView('create_join')}
+                    className="text-blue-600 font-bold hover:underline"
+                >
+                    Get Started &rarr;
+                </button>
+            </div>
+        ) : (
+            <div className="grid gap-4">
+                {groups.map(group => (
+                    <div 
+                        key={group.id} 
+                        onClick={() => { setSelectedGroup(group); setView('detail'); }}
+                        className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition active:scale-[0.98]"
+                    >
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h3 className="font-bold text-lg text-gray-800">{group.name}</h3>
+                                <p className="text-sm text-gray-500">{group.memberCount || group.members?.length || 0} members</p>
+                            </div>
+                            <div className="text-right">
+                                <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-lg">
+                                    {((group.activeGoal?.progress / group.activeGoal?.target) * 100 || 0).toFixed(0)}%
+                                </span>
+                            </div>
+                        </div>
+                        {group.activeGoal && (
+                            <div className="mt-3">
+                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Target: {group.activeGoal.title}</p>
+                                <div className="w-full bg-gray-100 rounded-full h-2">
+                                    <div 
+                                        className={`h-2 rounded-full bg-gradient-to-r ${moodGradient}`} 
+                                        style={{ width: `${Math.min(100, (group.activeGoal.progress / group.activeGoal.target) * 100)}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        )}
       </div>
     );
   }
 
-  // === DISPLAY ACTIVE GROUP ===
-  const goal = activeGroup.activeGoal || {};
-  const progressPercent = goal.target ? Math.min(100, (goal.progress / goal.target) * 100) : 0;
+  // === VIEW 2: CREATE / JOIN FORM ===
+  if (view === 'create_join') {
+    return (
+        <div className="max-w-xl mx-auto space-y-6 pb-20 animate-slide-in-right">
+            <button onClick={() => setView('lobby')} className="text-gray-500 flex items-center gap-1 hover:text-gray-800 mb-2">
+                <ArrowLeft size={18} /> Back to Lobby
+            </button>
 
-  return (
-    <div className="max-w-2xl mx-auto space-y-6 relative pb-20">
-      
-      {/* Group Header Card */}
-      <div className={`bg-gradient-to-br ${moodGradient} text-white rounded-3xl shadow-xl p-6 relative overflow-hidden`}>
-        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 relative z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide">Circle</span>
-              <span className="bg-black/20 px-2 py-0.5 rounded text-xs font-mono opacity-80">{activeGroup.groupCode}</span>
+            <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">Expand Your Network</h2>
+                    <p className="text-gray-500">Join another squad or start a new movement.</p>
+                </div>
+
+                <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
+                    <button onClick={() => setSubTab('join')} className={`flex-1 py-2 rounded-md font-medium transition-all ${subTab === 'join' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>Join Existing</button>
+                    <button onClick={() => setSubTab('create')} className={`flex-1 py-2 rounded-md font-medium transition-all ${subTab === 'create' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>Create New</button>
+                </div>
+
+                {subTab === 'join' ? (
+                    <div className="space-y-4">
+                        <input type="text" placeholder="Enter Group Code" className="w-full p-3 border rounded-xl" value={joinCode} onChange={(e) => setJoinCode(e.target.value)} />
+                        <button onClick={handleJoinSubmit} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Join Circle</button>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        <input name="name" type="text" placeholder="Group Name" className="w-full p-3 border rounded-xl" value={createData.name} onChange={handleCreateChange} />
+                        <div className="grid grid-cols-2 gap-3">
+                            <input name="goalTitle" type="text" placeholder="Goal Title" className="w-full p-3 border rounded-xl" value={createData.goalTitle} onChange={handleCreateChange} />
+                            <input name="targetAmount" type="number" placeholder="Target ₹" className="w-full p-3 border rounded-xl" value={createData.targetAmount} onChange={handleCreateChange} />
+                        </div>
+                        <input name="deadline" type="date" className="w-full p-3 border rounded-xl text-gray-500" value={createData.deadline} onChange={handleCreateChange} />
+                        <button onClick={handleCreateSubmit} className={`w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r ${moodGradient}`}>Create Circle</button>
+                    </div>
+                )}
             </div>
-            <h2 className="text-3xl font-bold flex items-center gap-2">
-              {activeGroup.name}
-            </h2>
-            <p className="text-white/80 text-sm mt-1">{activeGroup.memberCount || activeGroup.members?.length || 1} members saving together</p>
-          </div>
-          
-          <div className="bg-white/20 backdrop-blur-md p-3 rounded-xl min-w-[120px] text-center">
-             <p className="text-xs font-bold uppercase tracking-wider opacity-80">Pool Balance</p>
-             <p className="text-2xl font-bold">₹{goal.progress?.toLocaleString() || 0}</p>
-          </div>
+        </div>
+    );
+  }
+
+  // === VIEW 3: DETAIL GROUP VIEW ===
+  if (view === 'detail' && selectedGroup) {
+    const goal = selectedGroup.activeGoal || {};
+    const progressPercent = goal.target ? Math.min(100, (goal.progress / goal.target) * 100) : 0;
+    const isCreator = selectedGroup.createdById === userId;
+
+    return (
+      <div className="max-w-2xl mx-auto space-y-6 relative pb-20 animate-slide-in">
+        {/* Navigation Header */}
+        <div className="flex justify-between items-center">
+            <button onClick={() => setView('lobby')} className="text-gray-500 flex items-center gap-1 hover:text-gray-800">
+                <ArrowLeft size={18} /> Back
+            </button>
+            {!isCreator && (
+                <button onClick={handleLeaveSubmit} className="text-red-500 text-xs font-bold flex items-center gap-1 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50">
+                    <LogOut size={12} /> Leave
+                </button>
+            )}
         </div>
 
-        {/* Goal Progress Section */}
-        {goal.title && (
-          <div className="mt-6 bg-black/20 rounded-xl p-4 backdrop-blur-sm">
-            <div className="flex justify-between items-end mb-2">
-              <div>
-                <p className="text-xs font-bold uppercase opacity-70 mb-1">Active Goal</p>
-                <p className="font-bold text-lg flex items-center gap-2">
-                  <TargetIcon size={18} /> {goal.title}
-                </p>
+        {/* Group Header Card */}
+        <div className={`bg-gradient-to-br ${moodGradient} text-white rounded-3xl shadow-xl p-6 relative overflow-hidden`}>
+          <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 relative z-10">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide">Code: {selectedGroup.groupCode}</span>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-medium">Target: ₹{goal.target?.toLocaleString()}</p>
-                {goal.deadline && (
-                  <p className="text-xs opacity-75 flex items-center justify-end gap-1 mt-1">
-                    <Calendar size={12} /> {new Date(goal.deadline).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
+              <h2 className="text-3xl font-bold">{selectedGroup.name}</h2>
+              <p className="text-white/80 text-sm mt-1">{selectedGroup.members?.length || 0} members</p>
             </div>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-black/30 rounded-full h-3 overflow-hidden">
-              <div 
-                className="h-full bg-white transition-all duration-1000 ease-out rounded-full"
-                style={{ width: `${progressPercent}%` }}
-              ></div>
+            <div className="bg-white/20 backdrop-blur-md p-3 rounded-xl text-center">
+               <p className="text-xs font-bold uppercase opacity-80">Saved</p>
+               <p className="text-2xl font-bold">₹{goal.progress?.toLocaleString() || 0}</p>
             </div>
-            <p className="text-xs text-right mt-1 opacity-80">{progressPercent.toFixed(1)}% funded</p>
           </div>
-        )}
-      </div>
 
-      {/* Members / Leaderboard List */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <Crown className="w-5 h-5 text-yellow-500" />
-          Contribution Leaderboard
-        </h3>
-        <div className="space-y-3">
-          {activeGroup.members?.length > 0 ? (
-            activeGroup.members.map((member, idx) => (
-              <div key={member.id || idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors group">
-                <div className="flex items-center gap-4">
-                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-sm
-                     ${idx === 0 ? 'bg-yellow-100 text-yellow-600' : 'bg-white text-gray-500 border border-gray-200'}`}>
-                     {idx + 1}
-                   </div>
-                   <div>
-                     <p className="font-bold text-gray-800">{member.name || member.user?.name || 'Member'}</p>
-                     <p className="text-xs text-gray-500 font-medium">Rank {idx + 1}</p>
-                   </div>
+          {/* Goal Progress */}
+          {goal.title && (
+            <div className="mt-6 bg-black/20 rounded-xl p-4 backdrop-blur-sm">
+              <div className="flex justify-between items-end mb-2">
+                <div>
+                  <p className="text-xs font-bold uppercase opacity-70 mb-1">Target: ₹{goal.target?.toLocaleString()}</p>
+                  <p className="font-bold text-lg flex items-center gap-2"><TargetIcon size={18} /> {goal.title}</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-600 flex items-center gap-1">
-                    <TrendingUp size={14} /> ₹{member.saved || 0}
-                  </p>
-                </div>
+                
+                {/* CONTRIBUTE BUTTON */}
+                <button 
+                    onClick={() => setIsContributeOpen(!isContributeOpen)}
+                    className="bg-white text-purple-600 px-4 py-2 rounded-lg font-bold text-sm shadow-lg hover:scale-105 transition flex items-center gap-1"
+                >
+                    <Wallet size={16} /> Contribute
+                </button>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border-dashed border-2 border-gray-200">
-              <Users size={32} className="mx-auto mb-2 opacity-50" />
-              <p>No members yet.</p>
-              <p className="text-sm">Share code <strong>{activeGroup.groupCode}</strong> to invite friends!</p>
+
+              {/* Contribute Input (Collapsible) */}
+              {isContributeOpen && (
+                  <div className="mb-4 flex gap-2 animate-fade-in">
+                      <input 
+                        type="number" 
+                        placeholder="Amount" 
+                        className="w-full p-2 rounded-lg text-gray-800"
+                        value={contribAmount}
+                        onChange={(e) => setContribAmount(e.target.value)}
+                      />
+                      <button onClick={handleContributeSubmit} className="bg-green-500 text-white px-4 rounded-lg font-bold">Pay</button>
+                  </div>
+              )}
+
+              <div className="w-full bg-black/30 rounded-full h-3 overflow-hidden">
+                <div className="h-full bg-white transition-all duration-1000 ease-out rounded-full" style={{ width: `${progressPercent}%` }}></div>
+              </div>
             </div>
           )}
         </div>
+
+        {/* Leaderboard */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Crown className="w-5 h-5 text-yellow-500" /> Leaderboard
+          </h3>
+          <div className="space-y-3">
+            {selectedGroup.members?.map((member, idx) => (
+                <div key={member.id || idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-4">
+                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${idx===0?'bg-yellow-100 text-yellow-600':'bg-white border'}`}>{idx+1}</div>
+                     <p className="font-bold text-gray-800">{member.name || member.user?.name}</p>
+                  </div>
+                  <p className="font-bold text-green-600">₹{member.saved || 0}</p>
+                </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+  return null;
 };
 
 export default CircleView;
