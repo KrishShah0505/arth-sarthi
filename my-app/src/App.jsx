@@ -57,7 +57,7 @@ const App = () => {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [challengeCompleted, setChallengeCompleted] = useState(false);
-  const [mood, setMood] = useState('disciplined');
+  const [mood, setMood] = useState('impulsive');
 
   const chatEndRef = useRef(null);
 

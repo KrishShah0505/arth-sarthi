@@ -3,10 +3,11 @@ import { Target, Gift } from 'lucide-react';
 import { moodProfiles } from '../data/financialData';
 
 const DailyChallenge = ({ challenge, onComplete, completed, mood = 'neutral' }) => {
-  const moodColor = moodProfiles[mood]?.color || 'bg-blue-500';
+  // Use gradient from moodProfiles or fallback
+  const moodGradient = moodProfiles[mood]?.gradient || 'from-blue-500 to-sky-500';
 
   return (
-    <div className={`${moodColor} text-white p-4 rounded-xl shadow-lg mx-2 md:mx-0 border border-black`}>
+    <div className={`bg-gradient-to-r ${moodGradient} text-white p-4 rounded-xl shadow-lg mx-2 md:mx-0 border border-black`}>
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
         {/* Left section: Icon + Text */}
         <div className="flex items-center gap-3 flex-1 mt-5 ml-2">
@@ -14,7 +15,7 @@ const DailyChallenge = ({ challenge, onComplete, completed, mood = 'neutral' }) 
             <Target className="w-7 h-7 md:w-7 md:h-7" />
           </div>
           <div>
-            <p className="font-bold text-lg md:text-lg">Daily Challenge</p>
+            <p className="font-bold text-lg md:text-lg">Goal</p>
             <p className="text-sm md:text-sm opacity-90">{challenge}</p>
           </div>
         </div>

@@ -25,7 +25,7 @@ const VoiceCircle = ({ isListening, onToggleListen, level, mood }) => {
 
         {/* Idle State Glow (Subtle Mood Color) */}
         {!isListening && (
-           <div className={`absolute -inset-4 rounded-full bg-gradient-to-r from-orange-400 to-pink-400 opacity-20 blur-xl animate-pulse`}></div>
+           <div className={`absolute -inset-4 rounded-full bg-gradient-to-r ${moodData.gradient} opacity-20 blur-xl animate-pulse`}></div>
         )}
         
         {/* === MAIN BUTTON === */}
