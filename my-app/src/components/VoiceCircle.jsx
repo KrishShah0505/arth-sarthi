@@ -55,9 +55,7 @@ const VoiceCircle = ({ isListening, onToggleListen, level, mood }) => {
           </div> */}
           
           {/* Mood indicator */}
-          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white text-lg md:text-2xl px-2 md:px-3 py-0.5 md:py-1 rounded-full shadow-lg border-2 border-gray-200 whitespace-nowrap z-30">
-            {moodData.emoji}
-          </div>
+          
         </button>
       </div>
       
