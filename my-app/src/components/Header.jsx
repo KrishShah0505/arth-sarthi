@@ -5,21 +5,25 @@ import logo from '../assets/logo.png';
 
 const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
   const xpPercentage = (xp / maxXp) * 100;
+
+  // Ensure mood exists in moodProfiles, fallback to 'neutral'
   const moodData = moodProfiles[mood] || moodProfiles.neutral;
-  
+
   return (
-    <header className={`${moodData.color} text-white p-6 md:p-10 pb-16 md:pb-20 md:rounded-b-3xl lg:rounded-b-4xl shadow-lg relative z-10 transition-colors duration-500 border-2 border-black`}>
+    <header
+      className={`${moodData.color} text-white p-6 md:p-10 pb-16 md:pb-20 md:rounded-b-3xl lg:rounded-b-4xl shadow-lg relative z-10 transition-colors duration-500 border-2 border-black`}
+    >
       <div className="max-w-6xl mx-auto">
 
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-          
+
           {/* Logo + Mood */}
           <div className="flex items-center justify-between w-full md:w-auto">
             <div className="flex items-center gap-3">
-              
+
               {/* ==== LOGO SECTION ==== */}
               <div className="relative">
-                <img 
+                <img
                   src={logo}
                   alt="logo"
                   className="w-10 h-10 md:w-20 md:h-20 rounded-full object-cover shadow-md"
@@ -36,7 +40,7 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
             </div>
 
             {/* Mobile Hamburger Button */}
-            <button 
+            <button
               onClick={onProfileClick}
               className="md:hidden bg-white/20 p-2 rounded-full backdrop-blur-md hover:bg-white/30 transition"
             >
@@ -47,7 +51,7 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
           {/* Stats + Desktop Hamburger Button */}
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="flex items-center justify-between gap-3 w-full md:w-auto bg-black/20 md:bg-transparent p-1 md:p-0 rounded-xl">
-              
+
               <div className="flex items-center gap-1 bg-black/40 px-4 py-2 rounded-lg md:rounded-full backdrop-blur-sm justify-center">
                 <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
                 <span className="font-bold text-sm">{points} pts</span>
@@ -60,7 +64,7 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
             </div>
 
             {/* Desktop Hamburger Button */}
-            <button 
+            <button
               onClick={onProfileClick}
               className="hidden md:flex bg-white/20 p-2.5 rounded-full backdrop-blur-md hover:bg-white/30 transition shadow-lg border border-white/10"
               title="Menu"
@@ -72,7 +76,7 @@ const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
 
         {/* XP Bar */}
         <div className="relative w-full bg-black/20 rounded-full h-3 overflow-hidden backdrop-blur-sm mt-2 border border-white/10">
-          <div 
+          <div
             className="absolute inset-0 bg-gradient-to-r from-yellow-300 via-yellow-400 to-orange-500 transition-all duration-1000 ease-out rounded-full"
             style={{ width: `${xpPercentage}%` }}
           >

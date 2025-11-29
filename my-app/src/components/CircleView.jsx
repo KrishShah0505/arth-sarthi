@@ -3,21 +3,24 @@ import { Users, Crown, Calendar, Target as TargetIcon, Plus, LogIn, TrendingUp }
 import { moodProfiles } from '../data/financialData';
 
 const CircleView = ({ groups = [], onCreateGroup, onJoinGroup, mood = "motivational" }) => {
-  // State for Create Group Form
+  // === State ===
   const [createData, setCreateData] = useState({
     name: '',
     goalTitle: '',
     targetAmount: '',
     deadline: ''
   });
-
   const [joinCode, setJoinCode] = useState("");
   const [activeTab, setActiveTab] = useState('join'); // 'join' or 'create'
 
+  // === Active Group ===
   const activeGroup = groups.length > 0 ? groups[0] : null; 
-  const moodGradient = moodProfiles[mood]?.color || "from-purple-500 to-pink-500";
 
-  // Handle Create Form Change
+  // === Mood Handling ===
+  const moodData = moodProfiles[mood] || moodProfiles.neutral;
+  const moodGradient = moodData.gradient;
+
+  // === Handlers ===
   const handleCreateChange = (e) => {
     setCreateData({ ...createData, [e.target.name]: e.target.value });
   };
@@ -28,6 +31,7 @@ const CircleView = ({ groups = [], onCreateGroup, onJoinGroup, mood = "motivatio
     setCreateData({ name: '', goalTitle: '', targetAmount: '', deadline: '' });
   };
 
+  // === Render Join/Create Form if no active group ===
   if (!activeGroup) {
     return (
       <div className="max-w-xl mx-auto space-y-6 pb-20">
@@ -156,9 +160,7 @@ const CircleView = ({ groups = [], onCreateGroup, onJoinGroup, mood = "motivatio
       
       {/* Group Header Card */}
       <div className={`bg-gradient-to-br ${moodGradient} text-white rounded-3xl shadow-xl p-6 relative overflow-hidden`}>
-        {/* Background Pattern */}
         <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-        
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-1">
