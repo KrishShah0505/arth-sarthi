@@ -13,6 +13,12 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* === NEW: Slide from Right === */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -33,6 +39,11 @@
 
 .animate-slide-in {
   animation: slide-in 0.4s ease-out;
+}
+
+/* === NEW CLASS === */
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .animate-shimmer {
