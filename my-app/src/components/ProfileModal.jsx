@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, LogOut, Save, Wallet, HelpCircle, ArrowLeft } from 'lucide-react';
-import FinancialTipsFAQ from './FinanceTips'; // Ensure this path is correct based on your project
+import FinancialTipsFAQ from './FinanceTips';
 
 const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
   const [formData, setFormData] = useState({
@@ -41,30 +41,42 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    // Outer Wrapper: Aligns content to the RIGHT
     <div className="fixed inset-0 z-50 flex justify-end">
-      
-      {/* Backdrop (Dark overlay) */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
-      />
 
-      {/* Sidebar Panel */}
-      <div className="relative w-full max-w-md h-full bg-white shadow-2xl flex flex-col animate-slide-in-right rounded-l-3xl overflow-hidden">
-        
-        {/* === HEADER === */}
+      {/* Background overlay */}
+      {!showTips && (
+        <div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={onClose}
+        />
+      )}
+
+      {/* --- PANEL (Sidebar OR Fullscreen FAQ) --- */}
+      <div
+        className={
+          showTips
+            ? "relative w-full h-full bg-white shadow-2xl flex flex-col animate-slide-in-right overflow-hidden" // FULL SCREEN
+            : "relative w-full max-w-md h-full bg-white shadow-2xl flex flex-col animate-slide-in-right rounded-l-3xl overflow-hidden" // SIDEBAR
+        }
+      >
+
+        {/* HEADER */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white relative shrink-0">
-          <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition"
-          >
-            <X size={24} />
-          </button>
-          
+
+          {/* Close Button (only in sidebar mode) */}
+          {!showTips && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition"
+            >
+              <X size={24} />
+            </button>
+          )}
+
+          {/* FAQ Header */}
           {showTips ? (
             <div className="flex items-center gap-3">
-              <button 
+              <button
                 onClick={() => setShowTips(false)}
                 className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition"
               >
@@ -75,6 +87,7 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
               </h2>
             </div>
           ) : (
+            /* Profile Header */
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl border-2 border-white/50 backdrop-blur-md font-bold">
                 {userInitial}
@@ -87,46 +100,55 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
           )}
         </div>
 
-        {/* === SCROLLABLE BODY === */}
+        {/* BODY */}
         <div className="p-6 overflow-y-auto flex-1">
+
+          {/* FULL-SCREEN FAQ VIEW */}
           {showTips ? (
-            <div className="animate-slide-in">
+            <div className="p-3 md:p-6 animate-slide-in">
               <FinancialTipsFAQ />
             </div>
           ) : (
             <>
+              {/* PROFILE FORM */}
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Financial Settings */}
+
                 <div>
                   <h3 className="text-gray-800 font-bold mb-3 flex items-center gap-2">
                     <Wallet className="w-5 h-5 text-blue-600" />
                     Financial Settings
                   </h3>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Monthly Income</label>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                        Monthly Income
+                      </label>
                       <div className="relative mt-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
                         <input
                           type="number"
                           value={formData.income}
-                          onChange={(e) => setFormData({...formData, income: e.target.value})}
-                          className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-gray-700"
+                          onChange={(e) => setFormData({ ...formData, income: e.target.value })}
+                          className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-gray-700"
                           placeholder="0"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Budget Limit</label>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                        Budget Limit
+                      </label>
                       <div className="relative mt-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
                         <input
                           type="number"
                           value={formData.budgetLimit}
-                          onChange={(e) => setFormData({...formData, budgetLimit: e.target.value})}
-                          className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold text-gray-700"
+                          onChange={(e) => setFormData({ ...formData, budgetLimit: e.target.value })}
+                          className="w-full pl-7 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl
+                                     focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold text-gray-700"
                           placeholder="0"
                         />
                       </div>
@@ -135,33 +157,37 @@ const ProfileModal = ({ user, isOpen, onClose, onLogout, onUpdateProfile }) => {
                 </div>
 
                 {/* Save Button */}
-                <button 
+                <button
                   type="submit"
                   disabled={isSaving}
                   className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition flex items-center justify-center gap-2"
                 >
-                  {isSaving ? 'Saving...' : <><Save size={18} /> Save Changes</>}
+                  {isSaving ? 'Saving...' : (
+                    <>
+                      <Save size={18} /> Save Changes
+                    </>
+                  )}
                 </button>
               </form>
 
               {/* Divider */}
               <div className="h-px bg-gray-200 my-5"></div>
 
-              {/* Links Section */}
+              {/* LINKS */}
               <div className="space-y-3">
-                <button 
-                  onClick={() => setShowTips(true)} 
+                <button
+                  onClick={() => setShowTips(true)}
                   className="w-full flex items-center gap-3 p-3 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition font-semibold text-left"
                 >
                   <HelpCircle size={20} />
                   Financial Tips & FAQ
                 </button>
 
-                <button 
+                <button
                   onClick={onLogout}
                   className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-red-100 text-red-600 hover:bg-red-50 transition font-bold"
                 >
-                  <LogOut size={20} /> 
+                  <LogOut size={20} />
                   Log Out
                 </button>
               </div>
