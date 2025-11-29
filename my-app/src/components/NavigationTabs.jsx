@@ -12,13 +12,14 @@ const NavigationTabs = ({ activeTab, setActiveTab, mood = "motivational" }) => {
   const moodGradient = moodProfiles[mood]?.color || "from-blue-600 to-purple-600";
 
   return (
-    <div className="flex justify-center gap-2 mb-6 w-full px-2">
-      <div className="flex w-full gap-3 md:w-auto bg-gray-100/70 backdrop-blur-md p-1 rounded-full overflow-x-auto md:overflow-visible shadow-sm">
+   <div className="flex justify-center gap-2 mb-6 w-full px-2">
+  <div className="flex w-full gap-3 sm:gap-2 md:w-auto bg-gray-100/70 backdrop-blur-md p-1 rounded-full 
+                  shadow-sm flex-wrap justify-center">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold text-sm md:text-base transition-all whitespace-nowrap
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 sm:px-3 sm:py-3 rounded-full font-semibold text-sm md:text-base transition-all whitespace-nowrap
               ${
                 activeTab === tab.id
                   ? `bg-gradient-to-r ${moodGradient} text-white shadow-lg scale-100 md:scale-105`
