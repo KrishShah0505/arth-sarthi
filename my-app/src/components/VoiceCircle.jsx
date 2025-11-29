@@ -3,7 +3,7 @@ import { Mic } from 'lucide-react';
 import { moodProfiles } from '../data/financialData';
 
 const VoiceCircle = ({ isListening, onToggleListen, level, mood }) => {
-  const moodData = moodProfiles[mood] || moodProfiles.motivational;
+  const moodData = moodProfiles[mood] || moodProfiles.neutral;
   
   return (
     <div className="flex flex-col items-center justify-center my-6 md:my-8 min-h-[250px] md:min-h-[300px]">

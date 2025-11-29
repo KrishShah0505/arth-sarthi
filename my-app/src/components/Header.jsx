@@ -5,10 +5,10 @@ import logo from '../assets/logo.png';
 
 const Header = ({ level, xp, maxXp, points, mood, onProfileClick }) => {
   const xpPercentage = (xp / maxXp) * 100;
-  const moodData = moodProfiles[mood] || moodProfiles.motivational;
+  const moodData = moodProfiles[mood] || moodProfiles.neutral;
   
   return (
-    <header className={`bg-gradient-to-r ${moodData.color} text-white p-6 md:p-10 pb-16 md:pb-20 md:rounded-b-3xl lg:rounded-b-4xl shadow-lg relative z-10 transition-colors duration-500 border-2 border-black`}>
+    <header className={`${moodData.color} text-white p-6 md:p-10 pb-16 md:pb-20 md:rounded-b-3xl lg:rounded-b-4xl shadow-lg relative z-10 transition-colors duration-500 border-2 border-black`}>
       <div className="max-w-6xl mx-auto">
 
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">

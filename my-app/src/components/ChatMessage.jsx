@@ -3,7 +3,7 @@ import { Zap } from 'lucide-react';
 import { moodProfiles } from '../data/financialData';
 
 const ChatMessage = ({ message, isUser, xpGained, mood }) => {
-  const moodData = moodProfiles[mood] || moodProfiles.analytical;
+  const moodData = moodProfiles[mood] || moodProfiles.neutral;
   
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-slide-in`}>

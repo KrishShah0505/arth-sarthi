@@ -2,11 +2,11 @@ import React from 'react';
 import { Target, Gift } from 'lucide-react';
 import { moodProfiles } from '../data/financialData';
 
-const DailyChallenge = ({ challenge, onComplete, completed, mood = 'motivational' }) => {
-  const moodColor = moodProfiles[mood]?.color || 'from-purple-500 to-pink-500';
+const DailyChallenge = ({ challenge, onComplete, completed, mood = 'neutral' }) => {
+  const moodColor = moodProfiles[mood]?.color || 'bg-blue-500';
 
   return (
-    <div className={`bg-gradient-to-r ${moodColor} text-white p-4 rounded-xl shadow-lg mx-2 md:mx-0 border border-black`}>
+    <div className={`${moodColor} text-white p-4 rounded-xl shadow-lg mx-2 md:mx-0 border border-black`}>
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
         {/* Left section: Icon + Text */}
         <div className="flex items-center gap-3 flex-1 mt-5 ml-2">
