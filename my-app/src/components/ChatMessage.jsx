@@ -12,7 +12,7 @@ const ChatMessage = ({ message, isUser, xpGained, mood }) => {
           className={`p-4 rounded-2xl shadow-md ${
             isUser
               ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-none'
-              : `bg-gradient-to-r ${moodData.color} text-white rounded-bl-none`
+              : `bg-gradient-to-r ${moodData.gradient} text-white rounded-bl-none`
           }`}
         >
           <p className="whitespace-pre-wrap">{message}</p>

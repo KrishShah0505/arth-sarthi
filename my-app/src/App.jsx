@@ -57,7 +57,7 @@ const App = () => {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [challengeCompleted, setChallengeCompleted] = useState(false);
-  const [mood, setMood] = useState('motivational');
+  const [mood, setMood] = useState('disciplined');
 
   const chatEndRef = useRef(null);
 
@@ -251,7 +251,7 @@ const App = () => {
         { 
           text: aiRes.message || "Here is some financial advice based on your spending!", 
           isUser: false,
-          mood: 'analytical'
+          mood: 'neutral'
         }
       ]);
     } catch (err) {

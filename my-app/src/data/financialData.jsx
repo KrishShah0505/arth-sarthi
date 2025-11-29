@@ -19,27 +19,42 @@ export const financialKnowledgeGraph = {
 };
 
 export const moodProfiles = {
-  supportive: {
-    greeting: "Hey friend! 💙 I noticed something in your spending...",
-    tone: "warm and encouraging",
-    color: "from-blue-400 to-cyan-400"
+  neutral: {
+    greeting: "Hey there! Let's take a calm look at your spending today. 💙",
+    tone: "balanced, objective, and steady",
+    color: "bg-blue-500",
+    gradient: "from-blue-500 to-sky-300"
   },
-  analytical: {
-    greeting: "Let me analyze this for you 📊",
-    tone: "data-driven and precise",
-    color: "from-purple-400 to-indigo-400"
+
+  impulsive: {
+    greeting: "Hold on — I spotted something interesting in your spending! ⚡",
+    tone: "alert, analytical, and quick-to-act",
+    color: "bg-purple-500",
+    gradient: "from-purple-500 to-fuchsia-400"
   },
-  motivational: {
-    greeting: "You're doing great! Let's level up! 🚀",
-    tone: "energetic and inspiring",
-    color: "from-orange-400 to-pink-400"
+
+  casual: {
+    greeting: "All good! Let's keep things smooth and fun 😄",
+    tone: "relaxed, friendly, and easygoing",
+    color: "bg-pink-400",
+    gradient: "from-pink-400 to-orange-400"
   },
-  concerned: {
-    greeting: "I'm here to help you 🤝",
-    tone: "caring and protective",
-    color: "from-yellow-400 to-orange-400"
-  }
+
+  saver: {
+    greeting: "Great job managing your money! Let’s keep your savings strong 💛",
+    tone: "supportive, reassuring, and encouraging",
+    color: "bg-amber-400",
+    gradient: "from-amber-500 to-yellow-300"
+  },
+
+  disciplined: {
+    greeting: "Your consistency is impressive — let’s optimize even further 💼",
+    tone: "focused, strategic, and structured",
+    color: "bg-emerald-600",
+    gradient: "from-emerald-600 to-teal-400"
+  },
 };
+
 
 export const leaderboardData = [
   { rank: 1, name: 'Priya S.', points: 2840, level: 12, avatar: '👩‍💼', streak: 45 },

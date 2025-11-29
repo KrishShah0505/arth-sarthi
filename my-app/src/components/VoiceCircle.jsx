@@ -25,7 +25,7 @@ const VoiceCircle = ({ isListening, onToggleListen, level, mood }) => {
 
         {/* Idle State Glow (Subtle Mood Color) */}
         {!isListening && (
-           <div className={`absolute -inset-4 rounded-full bg-gradient-to-r ${moodData.color} opacity-20 blur-xl animate-pulse`}></div>
+           <div className={`absolute -inset-4 rounded-full bg-gradient-to-r from-orange-400 to-pink-400 opacity-20 blur-xl animate-pulse`}></div>
         )}
         
         {/* === MAIN BUTTON === */}
@@ -36,7 +36,7 @@ const VoiceCircle = ({ isListening, onToggleListen, level, mood }) => {
           }`}
         >
            {/* Gradient Circle Inside Button */}
-           <div className={`absolute inset-1 rounded-full bg-gradient-to-br ${moodData.color} flex items-center justify-center overflow-hidden`}>
+           <div className={`absolute inset-1 rounded-full bg-gradient-to-br ${moodData.gradient} flex items-center justify-center overflow-hidden`}>
               
               {/* Icon */}
               <div className="relative z-20">
